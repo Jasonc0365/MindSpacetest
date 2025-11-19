@@ -432,7 +432,16 @@ public class ObjectRenderer : MonoBehaviour
         var markerScale = new Vector3(markerWidth, markerHeight, 1f);
 
         var surfaceNormal = SampleSurfaceNormal(markerWorldPos, centerHit.normal);
-        var markerRotation = Quaternion.LookRotation(-surfaceNormal, Vector3.up);
+        
+        Quaternion markerRotation;
+        if (surfaceNormal.sqrMagnitude > 0.0001f)
+        {
+            markerRotation = Quaternion.LookRotation(-surfaceNormal, Vector3.up);
+        }
+        else
+        {
+            markerRotation = Quaternion.identity;
+        }
 
         return (markerWorldPos, markerRotation, markerScale);
     }

@@ -421,13 +421,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::SimpleDepthScanner
   pointStride: 4
   minDepth: 0.1
-  maxDepth: 4
-  maxPoints: 5000
-  debugDepthValues: 1
+  maxDepth: 5
+  maxPoints: 500
+  realtimeScanning: 0
+  accumulatePoints: 0
+  useManualTransform: 0
+  applyCameraPosition: 1
+  applyCameraRotation: 0
+  rotationOffset: {x: 0, y: 0, z: 0}
+  positionOffset: {x: 0, y: 0, z: 0}
+  reverseZ: 0
+  useNDC_Neg1to1: 0
+  invertReprojectionMatrix: 1
   pointColor: {r: 0, g: 1, b: 1, a: 1}
-  pointSize: 1
+  pointSize: 0.005
+  particleMaterial: {fileID: 2100000, guid: 564dd72414112e04595102ab46bd75dd, type: 2}
   controller: 2
   scanButton: 1
+  clearButton: 2
 --- !u!1001 &506424985
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1002,7 +1013,7 @@ MonoBehaviour:
   warningColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   errorColor: {r: 1, g: 0, b: 0, a: 1}
   enableNetworkLogging: 1
-  pcIPAddress: 192.168.68.111
+  pcIPAddress: 10.101.100.124
   udpPort: 12345
   autoDetectPC: 1
 --- !u!4 &1527921278
@@ -1014,7 +1025,7 @@ Transform:
   m_GameObject: {fileID: 1527921276}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1.04, z: -0}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
