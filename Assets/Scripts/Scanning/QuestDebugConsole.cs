@@ -2,6 +2,10 @@ using UnityEngine;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine.UI;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Threading;
 
 /// <summary>
 /// On-device debug console for Quest 3 - See logs in VR
@@ -36,6 +40,12 @@ public class QuestDebugConsole : MonoBehaviour
     [SerializeField] private Color warningColor = Color.yellow;
     [SerializeField] private Color errorColor = Color.red;
     
+    [Header("Network Logging (PC Viewer)")]
+    [SerializeField] private bool enableNetworkLogging = true;
+    [SerializeField] private string pcIPAddress = "192.168.1.100"; // Change to your PC's IP
+    [SerializeField] private int udpPort = 12345;
+    [SerializeField] private bool autoDetectPC = true; // Try to auto-detect PC on network
+    
     // Internal references (auto-created, no need to assign)
     private TextMeshProUGUI consoleText;
     private GameObject consolePanel;
@@ -43,6 +53,11 @@ public class QuestDebugConsole : MonoBehaviour
     
     private Queue<string> logQueue = new Queue<string>();
     private bool isVisible = true;
+    
+    // Network logging
+    private UdpClient udpClient;
+    private IPEndPoint pcEndPoint;
+    private bool networkInitialized = false;
     
     // Grab functionality
     private bool isGrabbed = false;
@@ -57,7 +72,65 @@ public class QuestDebugConsole : MonoBehaviour
         // Subscribe to Unity log messages
         Application.logMessageReceived += HandleLog;
         
+        // Initialize network logging if enabled
+        if (enableNetworkLogging)
+        {
+            InitializeNetworkLogging();
+        }
+        
         UpdateConsoleDisplay();
+    }
+    
+    void InitializeNetworkLogging()
+    {
+        try
+        {
+            udpClient = new UdpClient();
+            udpClient.EnableBroadcast = true;
+            
+            if (autoDetectPC)
+            {
+                // Try to detect PC IP automatically (broadcast to common network ranges)
+                // For now, use the configured IP
+                pcEndPoint = new IPEndPoint(IPAddress.Parse(pcIPAddress), udpPort);
+            }
+            else
+            {
+                pcEndPoint = new IPEndPoint(IPAddress.Parse(pcIPAddress), udpPort);
+            }
+            
+            networkInitialized = true;
+            Debug.Log($"[QuestDebugConsole] Network logging enabled - sending to {pcIPAddress}:{udpPort}");
+        }
+        catch (System.Exception e)
+        {
+            Debug.LogWarning($"[QuestDebugConsole] Failed to initialize network logging: {e.Message}");
+            networkInitialized = false;
+        }
+    }
+    
+    void SendLogToPC(string logMessage, string logType)
+    {
+        if (!networkInitialized || !enableNetworkLogging || udpClient == null)
+            return;
+        
+        try
+        {
+            // Format: [TYPE]|timestamp|message
+            string timestamp = System.DateTime.Now.ToString("HH:mm:ss.fff");
+            string formattedMessage = $"[{logType}]|{timestamp}|{logMessage}";
+            
+            byte[] data = Encoding.UTF8.GetBytes(formattedMessage);
+            udpClient.Send(data, data.Length, pcEndPoint);
+        }
+        catch (System.Exception e)
+        {
+            // Silently fail - don't spam errors if PC isn't listening
+            if (Time.frameCount % 300 == 0) // Log error every 5 seconds max
+            {
+                Debug.LogWarning($"[QuestDebugConsole] Network send failed: {e.Message}");
+            }
+        }
     }
     
     void HandleLog(string logString, string stackTrace, LogType type)
@@ -65,6 +138,7 @@ public class QuestDebugConsole : MonoBehaviour
         string timestamp = showTimestamp ? $"[{System.DateTime.Now:HH:mm:ss}] " : "";
         string colorTag = "";
         string colorEndTag = "";
+        string logTypeString = "LOG";
         
         // Color code by log type
         switch (type)
@@ -73,14 +147,17 @@ public class QuestDebugConsole : MonoBehaviour
             case LogType.Exception:
                 colorTag = $"<color=#{ColorUtility.ToHtmlStringRGB(errorColor)}>";
                 colorEndTag = "</color>";
+                logTypeString = "ERROR";
                 break;
             case LogType.Warning:
                 colorTag = $"<color=#{ColorUtility.ToHtmlStringRGB(warningColor)}>";
                 colorEndTag = "</color>";
+                logTypeString = "WARNING";
                 break;
             default:
                 colorTag = $"<color=#{ColorUtility.ToHtmlStringRGB(normalColor)}>";
                 colorEndTag = "</color>";
+                logTypeString = "LOG";
                 break;
         }
         
@@ -98,6 +175,14 @@ public class QuestDebugConsole : MonoBehaviour
         {
             logQueue.Dequeue();
         }
+        
+        // Send to PC via network
+        string cleanMessage = logString;
+        if (!string.IsNullOrEmpty(stackTrace) && showStackTrace)
+        {
+            cleanMessage += "\n" + stackTrace;
+        }
+        SendLogToPC(cleanMessage, logTypeString);
         
         UpdateConsoleDisplay();
     }
@@ -282,6 +367,17 @@ public class QuestDebugConsole : MonoBehaviour
     void OnDestroy()
     {
         Application.logMessageReceived -= HandleLog;
+        
+        // Cleanup network
+        if (udpClient != null)
+        {
+            try
+            {
+                udpClient.Close();
+            }
+            catch { }
+            udpClient = null;
+        }
         
         // Cleanup
         if (canvas != null)

@@ -385,7 +385,6 @@ GameObject:
   m_Component:
   - component: {fileID: 474064959}
   - component: {fileID: 474064960}
-  - component: {fileID: 474064961}
   m_Layer: 0
   m_Name: Depth Capture
   m_TagString: Untagged
@@ -423,27 +422,12 @@ MonoBehaviour:
   pointStride: 4
   minDepth: 0.1
   maxDepth: 4
+  maxPoints: 5000
+  debugDepthValues: 1
   pointColor: {r: 0, g: 1, b: 1, a: 1}
   pointSize: 1
-  maxPointsToVisualize: 5000
   controller: 2
   scanButton: 1
---- !u!114 &474064961
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 474064956}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 71a155ece80369d4e99bdaf5e59169b5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Meta.XR.EnvironmentDepth::Meta.XR.EnvironmentDepth.EnvironmentDepthManager
-  _occlusionShadersMode: 2
-  _removeHands: 0
-  CustomTrackingSpace: {fileID: 0}
-  <MaskMeshFilters>k__BackingField: []
 --- !u!1001 &506424985
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1017,6 +1001,10 @@ MonoBehaviour:
   normalColor: {r: 1, g: 1, b: 1, a: 1}
   warningColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   errorColor: {r: 1, g: 0, b: 0, a: 1}
+  enableNetworkLogging: 1
+  pcIPAddress: 192.168.68.111
+  udpPort: 12345
+  autoDetectPC: 1
 --- !u!4 &1527921278
 Transform:
   m_ObjectHideFlags: 0
@@ -1151,7 +1139,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &1903339200
 MonoBehaviour:
   m_ObjectHideFlags: 0
